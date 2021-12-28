@@ -4,6 +4,18 @@
 
 using namespace std;
 
+const string consoleSep = "-------------------------------";
+const string consoleLine = "* * * * * *";
+
+string selectGame() {
+    string input;
+    cout << "\n" << consoleLine << endl;
+    cout << "Please select a game to play: " << endl;
+    cout << "1. Go Fish" << endl;
+    cin >> input;
+    cout << consoleLine << "\n" << endl;
+    return input;
+}
 void playGoFish() {
 
 }
@@ -14,6 +26,15 @@ void shuffleDeck(string deck[], int n) {
         deck[random] = deck[i];
         deck[i] = temp;
     }
+}
+// functional utils
+bool strArrayContains(string arr[], int n, string elem) {
+    for (int i = 0; i < n; i++) {
+        if (arr[i] == elem) {
+            return true;
+        }
+    }
+    return false;
 }
 // testing utils
 void printStrArray(string arr[], int n) {
@@ -40,7 +61,7 @@ int main()
         for (int j = 0; j < NUM_SUITS; j++) {
             cardDeck[counter] = cardValues[i] + cardSuits[j];
             counter++;
-         }
+        }
     }
 
     // shuffle deck
@@ -49,6 +70,14 @@ int main()
     shuffleDeck(cardDeck, DECK_SIZE);
     printStrArray(cardDeck,DECK_SIZE);
 
+    // select game to play
+    const int NUM_VALID_GAMES = 1;
+    string validChoices[] = {"1"};
+    string userChoice = selectGame();
+    while (!strArrayContains(validChoices, NUM_VALID_GAMES, userChoice)) {
+        cout << "Invalid choice" << endl;
+        userChoice = selectGame();
+    }
 
     return 0;
 }
