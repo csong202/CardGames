@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
-//#include <string>
+#include <string>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -16,6 +17,9 @@ string selectGame() {
     cout << consoleLine << "\n" << endl;
     return input;
 }
+void showGameChoice() {
+    cout << "\n" << consoleSep << endl;
+}
 void playGoFish() {
 
 }
@@ -28,6 +32,12 @@ void shuffleDeck(string deck[], int n) {
     }
 }
 // functional utils
+void fillCard(char* card, char val1, char val2, char suit) {
+    card[0] = val1, card[1] = val2, card[2] = suit;
+}
+bool checkValidGameChoice() {
+    return false;
+}
 bool strArrayContains(string arr[], int n, string elem) {
     for (int i = 0; i < n; i++) {
         if (arr[i] == elem) {
@@ -44,40 +54,89 @@ void printStrArray(string arr[], int n) {
     }
     printf("\n");
 }
+void printArray(char** ptr, int n) {
+    for (int i = 0; i < n; i++) {
+        cout << *(ptr+i) << " ";
+    }
+    printf("\n");
+}
 
 int main()
 {
+    // ---- CONSTANTS ----
     const int NUM_SUITS = 4;
-    const int NUM_VALS = 13;
+    const int NUM_NUM_CARDS = 9;
+    const int NUM_FACE_CARDS = 4;
+    const int NUM_VALS = NUM_NUM_CARDS + NUM_FACE_CARDS;
     const int DECK_SIZE = NUM_SUITS * NUM_VALS;
 
-    const string cardSuits[NUM_SUITS] = {"S", "H", "D", "C"};
-    const string cardValues[NUM_VALS] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
-    string cardDeck[DECK_SIZE];
+    // ---- CREATING CARD DECK ----
 
-    // create card deck
-    int counter = 0;
-    for (int i = 0; i < NUM_VALS; i++) {
-        for (int j = 0; j < NUM_SUITS; j++) {
-            cardDeck[counter] = cardValues[i] + cardSuits[j];
-            counter++;
+    // card suits and face cards
+    char **cardSuits = (char**)malloc(NUM_SUITS * sizeof(char*));
+    cardSuits[0] = "S", cardSuits[1] = "H", cardSuits[2] = "D", cardSuits[3] = "C";
+    char **faceCards = (char**)malloc(NUM_FACE_CARDS * sizeof(char*));
+    faceCards[0] = "J", faceCards[1] = "Q", faceCards[2] = "K", faceCards[3] = "A";
+
+    // creating card deck
+    char **cardDeck = (char**)malloc(DECK_SIZE * sizeof(char*));
+    if (cardDeck == NULL) {
+        cout << "no more space" << endl;
+        return -1;
+    }
+    for (int i = 0; i < DECK_SIZE; i++) {
+        cardDeck[i] = (char*)malloc(3 * sizeof(char));
+    }
+    int cdCount = 0;
+    for (int i = 0; i < NUM_SUITS; i++) {
+        char currSuit = cardSuits[i][0];
+        for (int j = 2; j < 10; j++) {
+            fillCard(cardDeck[cdCount], '0', to_string(j)[0], currSuit);
+            cdCount++;
+        }
+        fillCard(cardDeck[cdCount], '1', '0', currSuit);
+        cdCount++;
+        for (int j = 0; j < NUM_FACE_CARDS; j++) {
+            fillCard(cardDeck[cdCount], '0', faceCards[j][0], currSuit);
+            cdCount++;
         }
     }
+    cout << "\nprintDeck" << endl;
+    printArray(cardDeck, DECK_SIZE);
 
-    // shuffle deck
-    srand(time(0));
-    printStrArray(cardDeck, DECK_SIZE);
-    shuffleDeck(cardDeck, DECK_SIZE);
-    printStrArray(cardDeck,DECK_SIZE);
-
-    // select game to play
-    const int NUM_VALID_GAMES = 1;
-    string validChoices[] = {"1"};
-    string userChoice = selectGame();
-    while (!strArrayContains(validChoices, NUM_VALID_GAMES, userChoice)) {
-        cout << "Invalid choice" << endl;
-        userChoice = selectGame();
-    }
-
+//
+//    // shuffle deck
+//    srand(time(0));
+//    printStrArray(cardDeck, DECK_SIZE);
+//    shuffleDeck(cardDeck, DECK_SIZE);
+//    printStrArray(cardDeck,DECK_SIZE);
+//
+//    // select game to play
+//    const int NUM_VALID_GAMES = 1;
+//    string validChoices[] = {"1"};
+////    string gameChoices[][] = {{"1", "Go Fish"}};
+//    /*
+//    idea: 2d array for valid choices, use in selectGame and showGameChoice
+//    validChoices = [["1", "Go Fish"]]
+//    */
+//    string userChoice = selectGame();
+//    while (!strArrayContains(validChoices, NUM_VALID_GAMES, userChoice)) {
+//        cout << "Invalid choice" << endl;
+//        userChoice = selectGame();
+//    }
+//
+//    // play game
+//    if (userChoice == "1") {
+//        cout << "\n" << consoleSep << endl;
+//        cout << "Playing Go Fish!" << endl;
+//        playGoFish();
+//    }
+//    else {
+//        cout << "something went wrong :(" << endl;
+//        return -1;
+//    }
+    free(cardSuits);
+    free(faceCards);
+    free(cardDeck);
     return 0;
 }
