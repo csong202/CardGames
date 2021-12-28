@@ -8,6 +8,7 @@ using namespace std;
 const string consoleSep = "-------------------------------";
 const string consoleLine = "* * * * * *";
 
+// playing games
 string selectGame() {
     string input;
     cout << "\n" << consoleLine << endl;
@@ -23,6 +24,7 @@ void showGameChoice() {
 void playGoFish() {
 
 }
+// game functionalities
 void shuffleDeck(string deck[], int n) {
     for (int i = 0; i < n; i++) {
         int random = rand() % n;
@@ -31,9 +33,18 @@ void shuffleDeck(string deck[], int n) {
         deck[i] = temp;
     }
 }
+void shuffleDeck(char** deck, int n) {
+    for (int i = 0; i < n; i++) {
+        int random = rand() % n;
+        char* temp = deck[random];
+        deck[random] = deck[i];
+        deck[i] = temp;
+    }
+}
 // functional utils
 void fillCard(char* card, char val1, char val2, char suit) {
     card[0] = val1, card[1] = val2, card[2] = suit;
+//    cout << card[0] << card[1] << card[2] << " ";
 }
 bool checkValidGameChoice() {
     return false;
@@ -101,15 +112,16 @@ int main()
             cdCount++;
         }
     }
-    cout << "\nprintDeck" << endl;
+    cout << "\ncardDeck" << endl;
     printArray(cardDeck, DECK_SIZE);
 
-//
-//    // shuffle deck
-//    srand(time(0));
-//    printStrArray(cardDeck, DECK_SIZE);
-//    shuffleDeck(cardDeck, DECK_SIZE);
-//    printStrArray(cardDeck,DECK_SIZE);
+    // ---- PREP FOR GAME ----
+
+    // shuffle deck
+    srand(time(0));
+    shuffleDeck(cardDeck, DECK_SIZE);
+    cout << "\nshuffled deck" << endl;
+    printArray(cardDeck,DECK_SIZE);
 //
 //    // select game to play
 //    const int NUM_VALID_GAMES = 1;
