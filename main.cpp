@@ -5,20 +5,25 @@
 
 using namespace std;
 
+// ---- GLOBAL VARIABLES ----
 const string consoleSep = "-------------------------------";
 const string consoleLine = "* * * * * *";
+const int MAX_GAME_NAME = 100;
 
 // playing games
-string selectGame() {
+string selectGame(string options[][MAX_GAME_NAME], int n) {
     string input;
     cout << "\n" << consoleLine << endl;
     cout << "Please select a game to play: " << endl;
-    cout << "1. Go Fish" << endl;
+    for (int i = 1; i < n+1; i++) {
+        cout << i << ". " << options[i-1][1] << endl;
+    }
     cin >> input;
     cout << consoleLine << "\n" << endl;
     return input;
 }
-void showGameChoice() {
+void showGameChoice(string options[][MAX_GAME_NAME], int n, string userChoice) {
+    cout << "You chose to play " << options[stoi(userChoice)-1][1] << "!\n";
     cout << "\n" << consoleSep << endl;
 }
 void playGoFish() {
@@ -41,13 +46,18 @@ void shuffleDeck(char** deck, int n) {
         deck[i] = temp;
     }
 }
+bool checkValidGameChoice(string options[][MAX_GAME_NAME], int n, string userChoice) {
+    for (int i = 0; i < n; i++) {
+        if (options[i][0] == userChoice) {
+            return true;
+        }
+    }
+    return false;
+}
 // functional utils
 void fillCard(char* card, char val1, char val2, char suit) {
     card[0] = val1, card[1] = val2, card[2] = suit;
 //    cout << card[0] << card[1] << card[2] << " ";
-}
-bool checkValidGameChoice() {
-    return false;
 }
 bool strArrayContains(string arr[], int n, string elem) {
     for (int i = 0; i < n; i++) {
@@ -122,31 +132,20 @@ int main()
     shuffleDeck(cardDeck, DECK_SIZE);
     cout << "\nshuffled deck" << endl;
     printArray(cardDeck,DECK_SIZE);
-//
-//    // select game to play
-//    const int NUM_VALID_GAMES = 1;
-//    string validChoices[] = {"1"};
-////    string gameChoices[][] = {{"1", "Go Fish"}};
-//    /*
-//    idea: 2d array for valid choices, use in selectGame and showGameChoice
-//    validChoices = [["1", "Go Fish"]]
-//    */
-//    string userChoice = selectGame();
-//    while (!strArrayContains(validChoices, NUM_VALID_GAMES, userChoice)) {
-//        cout << "Invalid choice" << endl;
-//        userChoice = selectGame();
-//    }
-//
-//    // play game
-//    if (userChoice == "1") {
-//        cout << "\n" << consoleSep << endl;
-//        cout << "Playing Go Fish!" << endl;
-//        playGoFish();
-//    }
-//    else {
-//        cout << "something went wrong :(" << endl;
-//        return -1;
-//    }
+
+    // select game to play
+    const int NUM_VALID_GAMES = 1;
+
+    string validGameChoices[][MAX_GAME_NAME] = {{"1", "Go Fish"}};
+
+    string userChoice = selectGame(validGameChoices, NUM_VALID_GAMES);
+    while (!checkValidGameChoice(validGameChoices, NUM_VALID_GAMES, userChoice)) {
+        cout << "Invalid choice" << endl;
+        userChoice = selectGame(validGameChoices, NUM_VALID_GAMES);
+    }
+    showGameChoice(validGameChoices, NUM_VALID_GAMES, userChoice);
+
+    // deallocating memory
     free(cardSuits);
     free(faceCards);
     free(cardDeck);
