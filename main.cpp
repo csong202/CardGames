@@ -30,45 +30,7 @@ void printArray(char** ptr, int n) {
     }
     printf("\n");
 }
-// game functionalities
-void fillCard(char* card, char val1, char val2, char suit) {
-    card[0] = val1, card[1] = val2, card[2] = suit;
-//    cout << card[0] << card[1] << card[2] << " ";
-}
-char* copyCard(char* card) {
-    char* copyCard = (char*)malloc(3 * sizeof(char));
-    copyCard[0] = card[0], copyCard[1] = card[1], copyCard[2] = card[2];
-    return copyCard;
-}
-void shuffleDeck(char** deck, int n) {
-    for (int i = 0; i < n; i++) {
-        int random = rand() % n;
-        char* temp = deck[random];
-        deck[random] = deck[i];
-        deck[i] = temp;
-    }
-}
-bool checkValidGameChoice(string userChoice) {
-    for (int i = 0; i < NUM_VALID_GAMES; i++) {
-        if (validGameChoices[i][0] == userChoice) {
-            return true;
-        }
-    }
-    return false;
-}
-char** copyDeck(char** deck, int n) {
-    char **copyDeck = (char**)malloc(n * sizeof(char*));
-    if (copyDeck == NULL) {
-        cout << "no more space" << endl;
-        return NULL;
-    }
-    for (int i = 0; i < n; i++) {
-        copyDeck[i] = (char*)malloc(3 * sizeof(char));
-        fillCard(copyDeck[i], deck[i][0], deck[i][1], deck[i][2]);
-    }
-    printArray(copyDeck, n);
-    return copyDeck;
-}
+
 // functional utils
 bool strArrayContains(string arr[], int n, string elem) {
     for (int i = 0; i < n; i++) {
@@ -92,11 +54,48 @@ string selectGame() {
     cout << consoleLine << "\n" << endl;
     return input;
 }
+bool checkValidGameChoice(string userChoice) {
+    for (int i = 0; i < NUM_VALID_GAMES; i++) {
+        if (validGameChoices[i][0] == userChoice) {
+            return true;
+        }
+    }
+    return false;
+}
 void showGameChoice(string userChoice) {
     cout << "You chose to play " << validGameChoices[stoi(userChoice)-1][1] << "!\n";
     cout << "\n" << consoleSep << endl;
 }
 // common game utils
+void fillCard(char* card, char val1, char val2, char suit) {
+    card[0] = val1, card[1] = val2, card[2] = suit;
+}
+char* copyCard(char* card) {
+    char* copyCard = (char*)malloc(3 * sizeof(char));
+    copyCard[0] = card[0], copyCard[1] = card[1], copyCard[2] = card[2];
+    return copyCard;
+}
+void shuffleDeck(char** deck, int n) {
+    for (int i = 0; i < n; i++) {
+        int random = rand() % n;
+        char* temp = deck[random];
+        deck[random] = deck[i];
+        deck[i] = temp;
+    }
+}
+char** copyDeck(char** deck, int n) {
+    char **copyDeck = (char**)malloc(n * sizeof(char*));
+    if (copyDeck == NULL) {
+        cout << "no more space" << endl;
+        return NULL;
+    }
+    for (int i = 0; i < n; i++) {
+        copyDeck[i] = (char*)malloc(3 * sizeof(char));
+        copyDeck[i] = copyCard(deck[i]);
+    }
+    printArray(copyDeck, n);
+    return copyDeck;
+}
 char*** dealCards(char** deck, int deckSize, int numToDeal) {
     char*** dealtCards = (char***)malloc(2 * sizeof(char**));
     for (int i = 0; i < 2; i++) {
