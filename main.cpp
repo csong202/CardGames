@@ -306,11 +306,10 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
 
         if (*numUserCards > 0 && checkPersonHasRank(compCards, *numCompCards, userAsk)) {
             int numCardsToAdd = removeCardsWithRank(compCards, numCompCards, userAsk);
-            cout << "numCardsToAdd = " << numCardsToAdd << endl;
             cout << "compCards" << endl;
             printArray(compCards, *numCompCards);
+            numCardsToAdd += removeCardsWithRank(userCards, numUserCards, userAsk);
             addToBooks(userBooks, numUserBooks, userAsk, numCardsToAdd);
-            removeCardsWithRank(userCards, numUserCards, userAsk);
             cout << "userBooks" << endl;
             printArray(userBooks, *numUserBooks);
             continue;
