@@ -228,6 +228,15 @@ char* removeTopFromCards(char** cards, int* n) {
     free(temp);
     return toRemove;
 }
+int countCardsWithRank(char** cards, int n, char* cardRank) {
+    int numCards = 0;
+    for (int i = 0; i < n; i++) {
+        if (cardRanksEq(cards[i], cardRank)) {
+            numCards++;
+        }
+    }
+    return numCards;
+}
 
 // GO FISH
 bool checkPersonHasRank(char** cards, int n, char* cardRank) {
@@ -282,23 +291,24 @@ int removeCardsWithRank(char** cards, int* n, char* cardRank) {
     removeFromCards(cards, n, toRemove, numToRemove);
     return numToRemove;
 }
-void addToBooks(char** books, int* n, char* cardRank, int numToAdd) {
-    int bookIdx = -1;
-    for (int i = 0; i < *n; i++) {
-        if (cardRanksEq(books[i], cardRank)) {
-            bookIdx = i;
+void giveCardsWithRank(char** pCards, int* nP, char** opCards, int* opN, char* cardRank) {
+    char** toRemove = (char**)malloc(sizeof(char*));
+    int numToRemove = 0;
+    for (int i = 0; i < *opN; i++) {
+        if (cardRanksEq(opCards[i], cardRank)) {
+            addToCards(pCards, nP, opCards[i]);
+            toRemove = (char**)realloc(toRemove, (numToRemove+1) * sizeof(char*));
+            toRemove[numToRemove] = (char*)malloc(CARD_SIZE * sizeof(char));
+            toRemove[numToRemove] = copyCard(opCards[i]);
+            numToRemove++;
         }
     }
-    if (bookIdx != -1) {
-        int numCardsInBook = books[bookIdx][2] - '0';
-        numCardsInBook += numToAdd;
-        books[bookIdx][2] = to_string(numCardsInBook)[0];
-    }
-    else {
-        books[*n] = (char*)malloc(CARD_SIZE * sizeof(char));
-        books[*n][0] = cardRank[0], books[*n][1] = cardRank[1], books[*n][2] = to_string(numToAdd)[0];
-        *n = *n + 1;
-    }
+    removeFromCards(opCards, opN, toRemove, numToRemove);
+}
+void addToBooks(char** books, int* n, char* cardRank) {
+    books[*n] = (char*)malloc(RANK_SIZE * sizeof(char));
+    books[*n] = copyCardRank(cardRank);
+    *n = *n + 1;
 }
 char* goFish(char** cards, int* n, char** stock, int* stockSize) {
     char* newCard = removeTopFromCards(stock, stockSize);
@@ -346,13 +356,18 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         char* userAsk = askForRank(userCards, *numUserCards);
 
         if (*numUserCards > 0 && checkPersonHasRank(compCards, *numCompCards, userAsk)) {
-            int numCardsToAdd = removeCardsWithRank(compCards, numCompCards, userAsk);
-            cout << "compCards" << endl;
-            printArray(compCards, *numCompCards);
-            numCardsToAdd += removeCardsWithRank(userCards, numUserCards, userAsk);
-            addToBooks(userBooks, numUserBooks, userAsk, numCardsToAdd);
-            cout << "userBooks" << endl;
-            printArray(userBooks, *numUserBooks);
+            int numCardsToAdd = countCardsWithRank(compCards, *numCompCards, userAsk)
+                + countCardsWithRank(userCards, *numUserCards, userAsk);
+            if (numCardsToAdd == 4) {
+                removeCardsWithRank(userCards, numUserCards, userAsk);
+                removeCardsWithRank(compCards, numCompCards, userAsk);
+                addToBooks(userBooks, numUserBooks, userAsk);
+                cout << "userBooks" << endl;
+                printArray(userBooks, *numUserBooks);
+            }
+            else {
+                giveCardsWithRank(userCards, numUserCards, compCards, numCompCards, userAsk);
+            }
             continue;
         }
         else {
@@ -367,14 +382,29 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         char* compAsk = getCompAsk(compCards, *numCompCards);
         cout << "compAsk = " << compAsk << endl;
 
+//        if (*numCompCards > 0 && checkPersonHasRank(userCards, *numUserCards, compAsk)) {
+//            int numCardsToAdd = removeCardsWithRank(userCards, numUserCards, compAsk);
+//            cout << "userCards" << endl;
+//            printArray(userCards, *numUserCards);
+//            numCardsToAdd += removeCardsWithRank(compCards, numCompCards, compAsk);
+//            addToBooks(compBooks, numCompBooks, compAsk);
+//            cout << "compBooks" << endl;
+//            printArray(compBooks, *numCompBooks);
+//            continue;
+//        }
         if (*numCompCards > 0 && checkPersonHasRank(userCards, *numUserCards, compAsk)) {
-            int numCardsToAdd = removeCardsWithRank(userCards, numUserCards, compAsk);
-            cout << "userCards" << endl;
-            printArray(userCards, *numUserCards);
-            numCardsToAdd += removeCardsWithRank(compCards, numCompCards, compAsk);
-            addToBooks(compBooks, numCompBooks, compAsk, numCardsToAdd);
-            cout << "compBooks" << endl;
-            printArray(compBooks, *numCompBooks);
+            int numCardsToAdd = countCardsWithRank(compCards, *numCompCards, compAsk)
+                + countCardsWithRank(userCards, *numUserCards, compAsk);
+            if (numCardsToAdd == 4) {
+                removeCardsWithRank(userCards, numUserCards, compAsk);
+                removeCardsWithRank(compCards, numCompCards, compAsk);
+                addToBooks(compBooks, numCompBooks, compAsk);
+                cout << "compBooks" << endl;
+                printArray(compBooks, *numCompBooks);
+            }
+            else {
+                giveCardsWithRank(compCards, numCompCards, userCards, numUserCards, compAsk);
+            }
             continue;
         }
         else {
