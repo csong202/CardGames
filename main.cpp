@@ -141,10 +141,10 @@ char*** dealCards(char** deck, int deckSize, int numToDeal) {
     return dealtCards;
 }
 void addToCards(char** cards, int* n, char* card) {
-    cards = (char**)realloc(cards, *n + CARD_SIZE * sizeof(char));
-    cards[*n] = (char*)malloc(CARD_SIZE * sizeof(char));
-    cards[*n] = copyCard(card);
     *n = *n + 1;
+    cards = (char**)realloc(cards, (*n) * sizeof(char*));
+    cards[*n-1] = (char*)malloc(CARD_SIZE * sizeof(char));
+    cards[*n-1] = copyCard(card);
 }
 bool checkValidCard(string s, char** userCards, int numUserCards, char** allCards, int n) { // DOES NOT WORK
     if (s.length() != 3) {
