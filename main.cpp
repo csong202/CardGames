@@ -356,18 +356,35 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
             continue;
         }
         else {
-            // user must go fish
             cout << "Go Fish!" << endl;
             goFish(userCards, numUserCards, stock, stockSize);
         }
 
         // computer's turn
         printMessageBox("Computer's turn!");
+        cout << "compCards" << endl;
+        printArray(compCards, *numCompCards);
         char* compAsk = getCompAsk(compCards, *numCompCards);
         cout << "compAsk = " << compAsk << endl;
 
+        if (*numCompCards > 0 && checkPersonHasRank(userCards, *numUserCards, compAsk)) {
+            int numCardsToAdd = removeCardsWithRank(userCards, numUserCards, compAsk);
+            cout << "userCards" << endl;
+            printArray(userCards, *numUserCards);
+            numCardsToAdd += removeCardsWithRank(compCards, numCompCards, compAsk);
+            addToBooks(compBooks, numCompBooks, compAsk, numCardsToAdd);
+            cout << "compBooks" << endl;
+            printArray(compBooks, *numCompBooks);
+            continue;
+        }
+        else {
+            cout << "Computer must Go Fish!" << endl;
+            goFish(compCards, numCompCards, stock, stockSize);
+        }
+
         // clear stuff
         free(userAsk);
+        free(compAsk);
     }
 
     // clear stuff
