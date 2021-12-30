@@ -42,6 +42,7 @@ void printArray(char** ptr, int n) {
     for (int i = 0; i < n; i++) {
         cout << *(ptr+i) << " ";
     }
+//    printf("\narray size = %d\n", n);
     printf("\n");
 }
 
@@ -191,6 +192,23 @@ bool cardsEq(char* c1, char* c2) {
 bool cardRanksEq(char* c1, char* c2) {
     return c1[0] == c2[0] && c1[1] == c2[1];
 }
+void removeFromStock(char** stock, int* n, char** toRemove, int numToRemove) {
+    int i = 0, j = 0;
+    int numRemoved = 0;
+    while (numRemoved < numToRemove && i < *n) {
+        if (cardsEq(stock[i], toRemove[j])) {
+            free(stock[i]);
+            for (int k = i; k < *n-1; k++) {
+                stock[k] = copyCard(stock[k+1]);
+            }
+            *n = *n - 1;
+            numRemoved++;
+            j++;
+            i--;
+        }
+        i++;
+    }
+}
 
 // GO FISH
 char* askForRank() {
@@ -246,6 +264,9 @@ void addToBooks(char** books, int* n, char* cardRank, int numToAdd) {
         *n = *n + 1;
     }
 }
+char* goFish(char** cards, int* n, char** stock, int* stockSize) {
+
+}
 void playGoFish(char** origCardDeck, int origDeckSize) {
     char** stock = copyDeck(origCardDeck, origDeckSize);
     int* stockSize = (int*)malloc(sizeof(int));
@@ -269,6 +290,10 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     printArray(userCards, 7);
     cout << "computer's cards: " << endl;
     printArray(compCards, 7);
+    cout << "stock: " << endl;
+    removeFromStock(stock, stockSize, userCards, *numUserCards);
+    removeFromStock(stock, stockSize, compCards, *numCompCards);
+    printArray(stock, *stockSize);
 
     while (!gameOver) {
 
@@ -279,20 +304,20 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         char* userAsk = askForRank();
         cout << "You asked the Computer for: " << userAsk << endl;
 
-        if (checkPersonHasRank(compCards, *numCompCards, userAsk)) {
+        if (*numUserCards > 0 && checkPersonHasRank(compCards, *numCompCards, userAsk)) {
             int numCardsToAdd = removeCardsWithRank(compCards, numCompCards, userAsk);
             cout << "numCardsToAdd = " << numCardsToAdd << endl;
             cout << "compCards" << endl;
             printArray(compCards, *numCompCards);
-            cout << "userBooks" << endl;
-            printArray(userBooks, *numUserBooks);
             addToBooks(userBooks, numUserBooks, userAsk, numCardsToAdd);
             removeCardsWithRank(userCards, numUserCards, userAsk);
             cout << "userBooks" << endl;
             printArray(userBooks, *numUserBooks);
+            continue;
         }
         else {
-            // comp must go fish
+            // user must go fish
+            cout << "Go Fish!" << endl;
         }
 
         // computer's turn
