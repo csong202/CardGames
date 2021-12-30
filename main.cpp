@@ -18,6 +18,8 @@ const string consoleLine = "* * * * * *";
 const int NUM_VALID_GAMES = 1;
 const int MAX_GAME_NAME = 50;
 string validGameChoices[][MAX_GAME_NAME] = {{"1", "Go Fish"}};
+// game play
+const string COMP_NAME = "Computer";
 // cards and decks
 const int CARD_SIZE = 3;
 const int RANK_SIZE = CARD_SIZE - 1;
@@ -90,6 +92,27 @@ bool checkValidGameChoice(string userChoice) {
 void showGameChoice(string userChoice) {
     cout << "You chose to play " << validGameChoices[stoi(userChoice)-1][1] << "!\n";
     cout << "\n" << consoleSep << endl;
+}
+void displayWinner(string winner) {
+    string message;
+    if (winner != "" && winner != COMP_NAME) {
+        message = "CONGRATS, " + winner + "! You won!";
+    }
+    else if (winner != "" && winner == COMP_NAME) {
+        message = "Oh no! You lost to " + COMP_NAME + " :(";
+    }
+    else {
+        message = "There was a tie!";
+    }
+    int length = message.length() + 6;
+
+    printf("\n");
+    string border = string(length, '*');
+    cout << border << endl;
+    printf("\n");
+    cout << "*  " << message << "  *" << endl;
+    printf("\n");
+    cout << border << endl;
 }
 // common game utils
 void fillCard(char* card, char val1, char val2, char suit) {
@@ -334,6 +357,13 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     *numUserCards = 7, *numCompCards = 7;
     *numUserBooks = 0, *numCompBooks = 0;
 
+    // get name
+    string userName;
+    do {
+        cout << "Please enter your name: ";
+        cin >> userName;
+    } while(userName.length() == 0);
+
     // deal cards
     char*** dealtCards = dealCards(stock, origDeckSize, 7);
     char** userCards = dealtCards[0];
@@ -382,16 +412,6 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         char* compAsk = getCompAsk(compCards, *numCompCards);
         cout << "compAsk = " << compAsk << endl;
 
-//        if (*numCompCards > 0 && checkPersonHasRank(userCards, *numUserCards, compAsk)) {
-//            int numCardsToAdd = removeCardsWithRank(userCards, numUserCards, compAsk);
-//            cout << "userCards" << endl;
-//            printArray(userCards, *numUserCards);
-//            numCardsToAdd += removeCardsWithRank(compCards, numCompCards, compAsk);
-//            addToBooks(compBooks, numCompBooks, compAsk);
-//            cout << "compBooks" << endl;
-//            printArray(compBooks, *numCompBooks);
-//            continue;
-//        }
         if (*numCompCards > 0 && checkPersonHasRank(userCards, *numUserCards, compAsk)) {
             int numCardsToAdd = countCardsWithRank(compCards, *numCompCards, compAsk)
                 + countCardsWithRank(userCards, *numUserCards, compAsk);
@@ -415,6 +435,20 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         // clear stuff
         free(userAsk);
         free(compAsk);
+
+        // winning condition
+        gameOver = *stockSize == 0 || (*numUserBooks + *numCompBooks == NUM_CARD_RANKS);
+    }
+
+    string winner;
+    if (*numUserBooks > *numCompBooks) {
+        winner = userName;
+    }
+    else if (*numCompBooks > *numUserBooks) {
+        winner = COMP_NAME;
+    }
+    else {
+        winner = "";
     }
 
     // clear stuff
