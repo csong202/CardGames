@@ -3,6 +3,12 @@
 #include <string>
 #include <stdlib.h>
 
+/*
+TO DO TESTING
+- comp has to give up multiple cards
+- adding to book after op has picked up new cards and given them up
+*/
+
 using namespace std;
 
 // ---- GLOBAL VARIABLES ----
@@ -199,8 +205,7 @@ char* askForRank() {
 }
 bool checkPersonHasRank(char** cards, int n, char* cardRank) {
     for (int i = 0; i < n; i++) {
-        char* currCard = cards[i];
-        if (cardRank[0] == currCard[0] && cardRank[1] == currCard[1]) {
+        if (cardRanksEq(cards[i], cardRank)) {
             return true;
         }
     }
