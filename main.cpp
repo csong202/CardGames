@@ -140,9 +140,11 @@ char*** dealCards(char** deck, int deckSize, int numToDeal) {
     }
     return dealtCards;
 }
-void addToDeck(char** deck, int n, char* card) { // UNTESTED
-    deck = (char**)realloc(deck, n + CARD_SIZE * sizeof(char));
-    deck[n] = copyCard(card);
+void addToCards(char** cards, int* n, char* card) {
+    cards = (char**)realloc(cards, *n + CARD_SIZE * sizeof(char));
+    cards[*n] = (char*)malloc(CARD_SIZE * sizeof(char));
+    cards[*n] = copyCard(card);
+    *n = *n + 1;
 }
 bool checkValidCard(string s, char** userCards, int numUserCards, char** allCards, int n) { // DOES NOT WORK
     if (s.length() != 3) {
@@ -192,14 +194,14 @@ bool cardsEq(char* c1, char* c2) {
 bool cardRanksEq(char* c1, char* c2) {
     return c1[0] == c2[0] && c1[1] == c2[1];
 }
-void removeFromStock(char** stock, int* n, char** toRemove, int numToRemove) {
+void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
     int i = 0, j = 0;
     int numRemoved = 0;
     while (numRemoved < numToRemove && i < *n) {
-        if (cardsEq(stock[i], toRemove[j])) {
-            free(stock[i]);
+        if (cardsEq(cards[i], toRemove[j])) {
+            free(cards[i]);
             for (int k = i; k < *n-1; k++) {
-                stock[k] = copyCard(stock[k+1]);
+                cards[k] = copyCard(cards[k+1]);
             }
             *n = *n - 1;
             numRemoved++;
@@ -209,18 +211,18 @@ void removeFromStock(char** stock, int* n, char** toRemove, int numToRemove) {
         i++;
     }
 }
+char* removeTopFromStock(char** stock, int* n) {
+    char* toRemove = (char*)malloc(CARD_SIZE * sizeof(char));
+    toRemove = copyCard(stock[0]);
+    char** temp = (char**)malloc(sizeof(char*));
+    temp[0] = (char*)malloc(CARD_SIZE * sizeof(char));
+    temp[0] = copyCard(toRemove);
+    removeFromCards(stock, n, temp, 1);
+    free(temp);
+    return toRemove;
+}
 
 // GO FISH
-char* askForRank() {
-    string userAsk;
-    do {
-        cout << "Ask the computer for a card rank: ";
-        cin >> userAsk;
-    } while (!checkValidCardRank(userAsk));
-    char* cardRank = (char*)malloc((CARD_SIZE-1) * sizeof(char));
-    cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
-    return cardRank;
-}
 bool checkPersonHasRank(char** cards, int n, char* cardRank) {
     for (int i = 0; i < n; i++) {
         if (cardRanksEq(cards[i], cardRank)) {
@@ -229,22 +231,39 @@ bool checkPersonHasRank(char** cards, int n, char* cardRank) {
     }
     return false;
 }
+bool canAskForRank(char** cards, int n, string userAsk) {
+    char* cardRank = (char*)malloc((CARD_SIZE-1) * sizeof(char));
+    cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
+    bool canAsk = checkPersonHasRank(cards, n, cardRank);
+    if (!canAsk) {return false;}
+    canAsk = checkValidCardRank(userAsk);
+    return canAsk;
+}
+char* askForRank(char** cards, int n) {
+    string userAsk;
+    do {
+        cout << "Ask the computer for a card rank: ";
+        cin >> userAsk;
+    } while (!canAskForRank(cards, n, userAsk));
+    char* cardRank = (char*)malloc((CARD_SIZE-1) * sizeof(char));
+    cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
+    return cardRank;
+}
 int removeCardsWithRank(char** cards, int* n, char* cardRank) {
-    int cardsRemoved = 0;
-    int origN = *n;
-    int i = 0;
-    while (i < *n) {
+    int numToRemove = 0;
+    char** toRemove = (char**)malloc(numToRemove * sizeof(char*));
+    int idx = 0;
+    for (int i = 0; i < *n; i++) {
         if (cardRanksEq(cards[i], cardRank)) {
-            free(cards[i]);
-            for (int j = i; j < origN-1-cardsRemoved; j++) {
-                cards[j] = copyCard(cards[j+1]);
-            }
-            *n = *n - 1;
-            cardsRemoved++;
+            numToRemove++;
+            toRemove = (char**)realloc(toRemove, numToRemove * sizeof(char*));
+            toRemove[idx] = (char*)malloc(CARD_SIZE * sizeof(char));
+            toRemove[idx] = copyCard(cards[i]);
+            idx++;
         }
-        i++;
     }
-    return cardsRemoved;
+    removeFromCards(cards, n, toRemove, numToRemove);
+    return numToRemove;
 }
 void addToBooks(char** books, int* n, char* cardRank, int numToAdd) {
     int bookIdx = -1;
@@ -265,7 +284,13 @@ void addToBooks(char** books, int* n, char* cardRank, int numToAdd) {
     }
 }
 char* goFish(char** cards, int* n, char** stock, int* stockSize) {
-
+    char* newCard = removeTopFromStock(stock, stockSize);
+    cout << "newCard = " << newCard << endl;
+    addToCards(cards, n, newCard);
+    cout << "stock: " << endl;
+    printArray(stock, *stockSize);
+    cout << "cards: " << endl;
+    printArray(cards, *n);
 }
 void playGoFish(char** origCardDeck, int origDeckSize) {
     char** stock = copyDeck(origCardDeck, origDeckSize);
@@ -291,8 +316,8 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     cout << "computer's cards: " << endl;
     printArray(compCards, 7);
     cout << "stock: " << endl;
-    removeFromStock(stock, stockSize, userCards, *numUserCards);
-    removeFromStock(stock, stockSize, compCards, *numCompCards);
+    removeFromCards(stock, stockSize, userCards, *numUserCards);
+    removeFromCards(stock, stockSize, compCards, *numCompCards);
     printArray(stock, *stockSize);
 
     while (!gameOver) {
@@ -301,8 +326,7 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         printMessageBox("Your turn!");
         cout << "Your cards: " << endl;
         printArray(userCards, *numUserCards);
-        char* userAsk = askForRank();
-        cout << "You asked the Computer for: " << userAsk << endl;
+        char* userAsk = askForRank(userCards, *numUserCards);
 
         if (*numUserCards > 0 && checkPersonHasRank(compCards, *numCompCards, userAsk)) {
             int numCardsToAdd = removeCardsWithRank(compCards, numCompCards, userAsk);
@@ -317,6 +341,7 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         else {
             // user must go fish
             cout << "Go Fish!" << endl;
+            goFish(userCards, numUserCards, stock, stockSize);
         }
 
         // computer's turn
