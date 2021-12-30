@@ -15,9 +15,11 @@ const int MAX_GAME_NAME = 100;
 string validGameChoices[][MAX_GAME_NAME] = {{"1", "Go Fish"}};
 // cards and decks
 const int CARD_SIZE = 3;
+const int NUM_SUITS = 4;
 const int NUM_NUM_CARDS = 9;
 const int NUM_FACE_CARDS = 4;
 const int NUM_CARD_RANKS = NUM_NUM_CARDS + NUM_FACE_CARDS;
+const int DECK_SIZE = NUM_SUITS * NUM_CARD_RANKS;
 char** cardRanks = (char**)malloc(NUM_CARD_RANKS * sizeof(char));
 
 // ---- FUNCTIONS ----
@@ -45,6 +47,14 @@ bool strArrayContains(string arr[], int n, string elem) {
         }
     }
     return false;
+}
+void printMessageBox(string message) {
+    printf("\n");
+    int length = message.length() + 4;
+    string border = string(length, '*');
+    cout << border << endl;
+    cout << "* " << message << " *" << endl;
+    cout << border << endl;
 }
 
 // PLAYING GAMES
@@ -110,7 +120,6 @@ char*** dealCards(char** deck, int deckSize, int numToDeal) {
             dealtCards[i][j] = (char*)malloc(CARD_SIZE * sizeof(char));
         }
     }
-
     int p1 = 0, p2 = 0;
     for (int i = 0; i < 2*numToDeal; i++) {
         if (i%2 == 0) {
@@ -122,7 +131,6 @@ char*** dealCards(char** deck, int deckSize, int numToDeal) {
             p2++;
         }
     }
-
     return dealtCards;
 }
 void addToDeck(char** deck, int n, char* card) { // UNTESTED
@@ -171,46 +179,82 @@ bool checkValidCardRank(string r) {
     }
     return false;
 }
+bool cardsEq(char* c1, char* c2) {
+    return c1[0] == c2[0] && c1[1] == c2[1] && c1[2] == c2[2];
+}
+bool cardRanksEq(char* c1, char* c2) {
+    return c1[0] == c2[0] && c1[1] == c2[1];
+}
 
 // GO FISH
-char* askForCard(char** userCards, int numUserCards, char** allCards, int n) { // useless?
-    string userAsk = "";
-    do {
-        cout << "Ask the computer for a card: ";
-        cin >> userAsk;
-    } while (!checkValidCard(userAsk, userCards, numUserCards, allCards, n));
-    char* card;
-    card[0] = userAsk[0], card[1] = userAsk[1], card[2] = userAsk[2];
-    return card;
-}
 char* askForRank() {
     string userAsk;
     do {
         cout << "Ask the computer for a card rank: ";
         cin >> userAsk;
     } while (!checkValidCardRank(userAsk));
-    char* cardRank;
+    char* cardRank = (char*)malloc((CARD_SIZE-1) * sizeof(char));
     cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
     return cardRank;
 }
+bool checkPersonHasRank(char** cards, int n, char* cardRank) {
+    for (int i = 0; i < n; i++) {
+        char* currCard = cards[i];
+        if (cardRank[0] == currCard[0] && cardRank[1] == currCard[1]) {
+            return true;
+        }
+    }
+    return false;
+}
+int removeCardsWithRank(char** cards, int* n, char* cardRank) {
+    int cardsRemoved = 0;
+    int origN = *n;
+    int i = 0;
+    while (i < *n) {
+        if (cardRanksEq(cards[i], cardRank)) {
+            free(cards[i]);
+            for (int j = i; j < origN-1-cardsRemoved; j++) {
+                cards[j] = copyCard(cards[j+1]);
+            }
+            *n = *n - 1;
+            cardsRemoved++;
+        }
+        i++;
+    }
+    return cardsRemoved;
+}
+void addToBooks(char** books, int* n, char* cardRank, int numToAdd) {
+    int bookIdx = -1;
+    for (int i = 0; i < *n; i++) {
+        if (cardRanksEq(books[i], cardRank)) {
+            bookIdx = i;
+        }
+    }
+    if (bookIdx != -1) {
+        int numCardsInBook = books[bookIdx][2] - '0';
+        numCardsInBook += numToAdd;
+        books[bookIdx][2] = to_string(numCardsInBook)[0];
+    }
+    else {
+        books[*n] = (char*)malloc(CARD_SIZE * sizeof(char));
+        books[*n][0] = cardRank[0], books[*n][1] = cardRank[1], books[*n][2] = to_string(numToAdd)[0];
+        *n = *n + 1;
+    }
+}
 void playGoFish(char** origCardDeck, int origDeckSize) {
     char** stock = copyDeck(origCardDeck, origDeckSize);
+    int* stockSize = (int*)malloc(sizeof(int));
+    *stockSize = DECK_SIZE;
     bool gameOver = false;
     const int BOOK_SIZE = 4;
-    char*** userBooks = (char***)malloc(sizeof(char**));
-    char*** compBooks = (char***)malloc(sizeof(char**));
-    int numUserCards = 7, numCompCards = 7;
-    int numUserBooks = 0, numCompBooks = 0;
-
-    // initialize user and computer's books
-    userBooks[0] = (char**)malloc(BOOK_SIZE * sizeof(char*));
-    for (int i = 0; i < BOOK_SIZE; i++) {
-        userBooks[0][i] = (char*)malloc(CARD_SIZE * sizeof(char));
-    }
-    compBooks[0] = (char**)malloc(BOOK_SIZE * sizeof(char*));
-    for (int i = 0; i < BOOK_SIZE; i++) {
-        compBooks[0][i] = (char*)malloc(CARD_SIZE * sizeof(char));
-    }
+    char** userBooks = (char**)malloc(sizeof(char*));
+    char** compBooks = (char**)malloc(sizeof(char*));
+    int* numUserCards = (int*)malloc(sizeof(int));
+    int* numCompCards = (int*)malloc(sizeof(int));
+    int* numUserBooks = (int*)malloc(sizeof(int));
+    int* numCompBooks = (int*)malloc(sizeof(int));
+    *numUserCards = 7, *numCompCards = 7;
+    *numUserBooks = 0, *numCompBooks = 0;
 
     // deal cards
     char*** dealtCards = dealCards(stock, origDeckSize, 7);
@@ -222,21 +266,52 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     printArray(compCards, 7);
 
     while (!gameOver) {
+
         // user's turn
-        string userAsk = askForRank();
-        cout << "in playGoFish, user asked for " << userAsk << endl;
+        printMessageBox("Your turn!");
+        cout << "Your cards: " << endl;
+        printArray(userCards, *numUserCards);
+        char* userAsk = askForRank();
+        cout << "You asked the Computer for: " << userAsk << endl;
+
+        if (checkPersonHasRank(compCards, *numCompCards, userAsk)) {
+            int numCardsToAdd = removeCardsWithRank(compCards, numCompCards, userAsk);
+            cout << "numCardsToAdd = " << numCardsToAdd << endl;
+            cout << "compCards" << endl;
+            printArray(compCards, *numCompCards);
+            cout << "userBooks" << endl;
+            printArray(userBooks, *numUserBooks);
+            addToBooks(userBooks, numUserBooks, userAsk, numCardsToAdd);
+            removeCardsWithRank(userCards, numUserCards, userAsk);
+            cout << "userBooks" << endl;
+            printArray(userBooks, *numUserBooks);
+        }
+        else {
+            // comp must go fish
+        }
+
         // computer's turn
+        printMessageBox("Computer's turn!");
+
         // clear stuff
+        free(userAsk);
     }
+
+    // clear stuff
+    free(stock);
+    free(userBooks);
+    free(compBooks);
+    free(numUserBooks);
+    free(numCompBooks);
+    free(userCards);
+    free(compCards);
+    free(numUserCards);
+    free(numCompCards);
 }
 
 
 int main()
 {
-    // ---- CONSTANTS ----
-    const int NUM_SUITS = 4;
-    const int DECK_SIZE = NUM_SUITS * NUM_CARD_RANKS;
-
     // ---- CREATING CARD DECK ----
 
     // card suits and face cards
