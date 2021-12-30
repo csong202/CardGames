@@ -5,7 +5,6 @@
 
 /*
 TO DO TESTING
-- comp has to give up multiple cards
 - adding to book after op has picked up new cards and given them up
 */
 
@@ -17,10 +16,11 @@ const string consoleSep = "-------------------------------";
 const string consoleLine = "* * * * * *";
 // game choices
 const int NUM_VALID_GAMES = 1;
-const int MAX_GAME_NAME = 100;
+const int MAX_GAME_NAME = 50;
 string validGameChoices[][MAX_GAME_NAME] = {{"1", "Go Fish"}};
 // cards and decks
 const int CARD_SIZE = 3;
+const int RANK_SIZE = CARD_SIZE - 1;
 const int NUM_SUITS = 4;
 const int NUM_NUM_CARDS = 9;
 const int NUM_FACE_CARDS = 4;
@@ -211,13 +211,13 @@ void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
         i++;
     }
 }
-char* removeTopFromStock(char** stock, int* n) {
+char* removeTopFromCards(char** cards, int* n) {
     char* toRemove = (char*)malloc(CARD_SIZE * sizeof(char));
-    toRemove = copyCard(stock[0]);
+    toRemove = copyCard(cards[0]);
     char** temp = (char**)malloc(sizeof(char*));
     temp[0] = (char*)malloc(CARD_SIZE * sizeof(char));
     temp[0] = copyCard(toRemove);
-    removeFromCards(stock, n, temp, 1);
+    removeFromCards(cards, n, temp, 1);
     free(temp);
     return toRemove;
 }
@@ -232,7 +232,7 @@ bool checkPersonHasRank(char** cards, int n, char* cardRank) {
     return false;
 }
 bool canAskForRank(char** cards, int n, string userAsk) {
-    char* cardRank = (char*)malloc((CARD_SIZE-1) * sizeof(char));
+    char* cardRank = (char*)malloc(RANK_SIZE * sizeof(char));
     cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
     bool canAsk = checkPersonHasRank(cards, n, cardRank);
     if (!canAsk) {return false;}
@@ -245,7 +245,7 @@ char* askForRank(char** cards, int n) {
         cout << "Ask the computer for a card rank: ";
         cin >> userAsk;
     } while (!canAskForRank(cards, n, userAsk));
-    char* cardRank = (char*)malloc((CARD_SIZE-1) * sizeof(char));
+    char* cardRank = (char*)malloc(RANK_SIZE * sizeof(char));
     cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
     return cardRank;
 }
@@ -284,7 +284,7 @@ void addToBooks(char** books, int* n, char* cardRank, int numToAdd) {
     }
 }
 char* goFish(char** cards, int* n, char** stock, int* stockSize) {
-    char* newCard = removeTopFromStock(stock, stockSize);
+    char* newCard = removeTopFromCards(stock, stockSize);
     cout << "newCard = " << newCard << endl;
     addToCards(cards, n, newCard);
     cout << "stock: " << endl;
