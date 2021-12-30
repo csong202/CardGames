@@ -26,6 +26,8 @@ const int NUM_NUM_CARDS = 9;
 const int NUM_FACE_CARDS = 4;
 const int NUM_CARD_RANKS = NUM_NUM_CARDS + NUM_FACE_CARDS;
 const int DECK_SIZE = NUM_SUITS * NUM_CARD_RANKS;
+char** cardSuits = (char**)malloc(NUM_SUITS * sizeof(char*));
+char** faceCards = (char**)malloc(NUM_FACE_CARDS * sizeof(char*));
 char** cardRanks = (char**)malloc(NUM_CARD_RANKS * sizeof(char));
 
 // ---- FUNCTIONS ----
@@ -97,6 +99,11 @@ char* copyCard(char* card) {
     char* copyCard = (char*)malloc(CARD_SIZE * sizeof(char));
     copyCard[0] = card[0], copyCard[1] = card[1], copyCard[2] = card[2];
     return copyCard;
+}
+char* copyCardRank(char* cardRank) {
+    char* copyCR = (char*)malloc(RANK_SIZE * sizeof(char));
+    copyCR[0] = cardRank[0], copyCR[1] = cardRank[1];
+    return copyCR;
 }
 void shuffleDeck(char** deck, int n) {
     for (int i = 0; i < n; i++) {
@@ -244,10 +251,20 @@ char* askForRank(char** cards, int n) {
     do {
         cout << "Ask the computer for a card rank: ";
         cin >> userAsk;
+        char* cardRank = (char*)malloc(RANK_SIZE * sizeof(char));
     } while (!canAskForRank(cards, n, userAsk));
     char* cardRank = (char*)malloc(RANK_SIZE * sizeof(char));
     cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
     return cardRank;
+}
+char* getCompAsk(char** cards, int n) {
+    int random;
+    char* compRank = (char*)malloc(RANK_SIZE * sizeof(char));
+    do {
+        random = rand() % NUM_CARD_RANKS;
+        compRank = copyCardRank(cardRanks[random]);
+    } while(!checkPersonHasRank(cards, n, compRank));
+    return compRank;
 }
 int removeCardsWithRank(char** cards, int* n, char* cardRank) {
     int numToRemove = 0;
@@ -346,6 +363,8 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
 
         // computer's turn
         printMessageBox("Computer's turn!");
+        char* compAsk = getCompAsk(compCards, *numCompCards);
+        cout << "compAsk = " << compAsk << endl;
 
         // clear stuff
         free(userAsk);
@@ -368,15 +387,13 @@ int main()
 {
     // ---- CREATING CARD DECK ----
 
-    // card suits and face cards
-    char **cardSuits = (char**)malloc(NUM_SUITS * sizeof(char*));
+    // populating global cardSuits and faceCards
     cardSuits[0] = "S", cardSuits[1] = "H", cardSuits[2] = "D", cardSuits[3] = "C";
-    char **faceCards = (char**)malloc(NUM_FACE_CARDS * sizeof(char*));
     faceCards[0] = "J", faceCards[1] = "Q", faceCards[2] = "K", faceCards[3] = "A";
 
     // populating global cardRanks
     for (int i = 0; i < NUM_CARD_RANKS; i++) {
-        cardRanks[i] = (char*)malloc((CARD_SIZE-1) * sizeof(char));
+        cardRanks[i] = (char*)malloc(RANK_SIZE * sizeof(char));
     }
     int cdRankCount = 0;
     for (int i = 2; i < 10; i++) {
