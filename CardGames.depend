@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1640907829 source:c:\dev\games\cardgames\main.cpp
+1640966426 source:c:\dev\games\cardgames\main.cpp
 	<iostream>
 	<time.h>
 	<string>

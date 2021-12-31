@@ -14,10 +14,11 @@ using namespace std;
 // console display
 const string consoleSep = "-------------------------------";
 const string consoleLine = "* * * * * *";
-// game choices
+// game selection
 const int NUM_VALID_GAMES = 1;
 const int MAX_GAME_NAME = 50;
 string validGameChoices[][MAX_GAME_NAME] = {{"1", "Go Fish"}};
+const string QUIT_PROG_CMD = "Q";
 // game play
 const string COMP_NAME = "Computer";
 // cards and decks
@@ -73,7 +74,7 @@ void printMessageBox(string message) {
 string selectGame() {
     string input;
     cout << "\n" << consoleLine << endl;
-    cout << "Please select a game to play: " << endl;
+    cout << "Please select a game to play or enter Q to quit: " << endl;
     for (int i = 1; i < NUM_VALID_GAMES + 1; i++) {
         cout << i << ". " << validGameChoices[i-1][1] << endl;
     }
@@ -87,10 +88,15 @@ bool checkValidGameChoice(string userChoice) {
             return true;
         }
     }
-    return false;
+    return userChoice == QUIT_PROG_CMD;
 }
 void showGameChoice(string userChoice) {
-    cout << "You chose to play " << validGameChoices[stoi(userChoice)-1][1] << "!\n";
+    if (userChoice != QUIT_PROG_CMD) {
+        cout << "You chose to play " << validGameChoices[stoi(userChoice)-1][1] << "!\n";
+    }
+    else {
+        cout << "Exiting program" << endl;
+    }
     cout << "\n" << consoleSep << endl;
 }
 void displayWinner(string winner) {
@@ -515,29 +521,37 @@ int main()
     printArray(cardDeck, DECK_SIZE);
 
     // ---- PREP FOR GAME ----
+    string userChoice;
+    do {
+        // shuffle deck
+        srand(time(0));
+        shuffleDeck(cardDeck, DECK_SIZE);
+        cout << "\nshuffled deck" << endl;
+        printArray(cardDeck,DECK_SIZE);
 
-    // shuffle deck
-    srand(time(0));
-    shuffleDeck(cardDeck, DECK_SIZE);
-    cout << "\nshuffled deck" << endl;
-    printArray(cardDeck,DECK_SIZE);
-
-    // select game to play
-    string userChoice = selectGame();
-    while (!checkValidGameChoice(userChoice)) {
-        cout << "Invalid choice" << endl;
+        // select game to play
         userChoice = selectGame();
-    }
-    showGameChoice(userChoice);
+        while (!checkValidGameChoice(userChoice)) {
+            cout << "Invalid choice" << endl;
+            userChoice = selectGame();
+        }
+        showGameChoice(userChoice);
 
-    // play game
-    if (userChoice == "1") {
-        playGoFish(cardDeck, DECK_SIZE);
-    }
-    else {
-        cout << "Something went wrong :(" << endl;
-        return -1;
-    }
+        // play game
+        if (userChoice == "1") {
+            playGoFish(cardDeck, DECK_SIZE);
+        }
+        else if (userChoice == QUIT_PROG_CMD) {
+            cout << "Goodbye!" << endl;
+            break;
+        }
+        else {
+            cout << "Something went wrong :(" << endl;
+            return -1;
+        }
+    } while (userChoice != QUIT_PROG_CMD);
+
+
 
     // ---- END STUFF ----
 
