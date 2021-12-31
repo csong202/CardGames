@@ -130,6 +130,13 @@ void displayWinner(string winner) {
     cout << border << endl;
 }
 // common game utils
+string getUserName() {
+    string userName;
+    do {
+        cout << "Please enter your name: ";
+        cin >> userName;
+    } while(userName.length() == 0 && userName != COMP_NAME);
+}
 void fillCard(char* card, char val1, char val2, char suit) {
     card[0] = val1, card[1] = val2, card[2] = suit;
 }
@@ -368,11 +375,7 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     *numUserBooks = 0, *numCompBooks = 0;
 
     // get name
-    string userName;
-    do {
-        cout << "Please enter your name: ";
-        cin >> userName;
-    } while(userName.length() == 0);
+    string userName = getUserName();
 
     // deal cards
     char*** dealtCards = dealCards(stock, origDeckSize, 7);
