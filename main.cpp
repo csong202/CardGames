@@ -10,10 +10,9 @@ Run in external console: f8
 
 /*
 TO DO TESTING
-- get another turn if going fish gives you the card you want
 - winning game
 - running out of cards
-- handleBookInCards: starting with a book, after picking up 4th card in book
+- handleBookInCards: starting with a book
 */
 
 using namespace std;
@@ -105,6 +104,7 @@ void showGameChoice(string userChoice) {
     }
     else {
         cout << "Exiting program" << endl;
+        return;
     }
     cout << "\n" << consoleSep << endl;
 }
@@ -190,36 +190,6 @@ void addToCards(char** cards, int* n, char* card) {
     cards = (char**)realloc(cards, (*n) * sizeof(char*));
     cards[*n-1] = (char*)malloc(CARD_SIZE * sizeof(char));
     cards[*n-1] = copyCard(card);
-}
-bool checkValidCard(string s, char** userCards, int numUserCards, char** allCards, int n) { // DOES NOT WORK
-    if (s.length() != 3) {
-        return false;
-    }
-    bool valid = false;
-    for (int i = 0; i < n; i++) {
-        char* currCard = allCards[i];
-        if (s[0] == currCard[0] && s[1] == currCard[1] && s[2] == currCard[2]) {
-            printf("in allCards, s = %c%c%c, currCard = %c%c%c\n", s[0], s[1], s[2], currCard[0], currCard[1], currCard[2]);
-            valid = true;
-            break;
-        }
-    }
-    cout << "check allCards, valid = " << valid << endl;
-    if (!valid) {return false;}
-//    printf("0 = %c%c%c, 1 = %c%c%c\n", userCards[0][0], userCards[0][1], userCards[0][2], userCards[1][0], userCards[1][1], userCards[1][2]);
-    valid = false;
-    for (int i = 0; i < numUserCards; i++) {
-        char* currCard = userCards[i];
-        if (s[0] == currCard[0] && s[1] == currCard[1] && s[2] == currCard[2]) {
-            printf("\tin userCards at i = %d, currCard = %c%c%c\n", i, currCard[0], currCard[1], currCard[2]);
-            cout << "userCards" << endl;
-            printArray(userCards, numUserCards);
-            valid = true;
-            break;
-        }
-    }
-    cout << "check userCards, valid = " << valid << endl;
-    return valid;
 }
 bool checkValidCardRank(string r) {
     if (r.length() != 2) {
@@ -412,17 +382,15 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     printArray(userCards, 7);
     cout << "computer's cards: " << endl;
     printArray(compCards, 7);
-    cout << "stock: " << endl;
     removeFromCards(stock, stockSize, userCards, *numUserCards);
     removeFromCards(stock, stockSize, compCards, *numCompCards);
+    cout << "stock: " << endl;
     printArray(stock, *stockSize);
     handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, NULL_RANK);
     handleBookInCards(compCards, numCompCards, compBooks, numCompBooks, NULL_RANK);
 
     bool compTurnAgain = false;
-
     while (!gameOver) {
-
         // user's turn
         if (!compTurnAgain) {
             printMessageBox("Your turn!");
@@ -595,8 +563,6 @@ int main()
             return -1;
         }
     } while (userChoice != QUIT_PROG_CMD);
-
-
 
     // ---- END STUFF ----
 
