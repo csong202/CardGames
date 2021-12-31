@@ -10,6 +10,7 @@ Run in external console: f8
 
 /*
 TO DO TESTING
+- get another turn if going fish gives you the card you want
 - winning game
 - running out of cards
 - handleBookInCards: starting with a book, after picking up 4th card in book
@@ -232,27 +233,27 @@ bool checkValidCardRank(string r) {
     }
     return false;
 }
-bool cardsEq(char* c1, char* c2) {
-    return c1[0] == c2[0] && c1[1] == c2[1] && c1[2] == c2[2];
-}
 bool cardRanksEq(char* c1, char* c2) {
     return c1[0] == c2[0] && c1[1] == c2[1];
+}
+bool cardsEq(char* c1, char* c2) {
+    return cardRanksEq(c1, c2) && c1[2] == c2[2];
 }
 void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
     int i = 0, j = 0;
     int numRemoved = 0;
     while (numRemoved < numToRemove && i < *n) {
         if (cardsEq(cards[i], toRemove[j])) {
-            free(cards[i]);
             for (int k = i; k < *n-1; k++) {
                 cards[k] = copyCard(cards[k+1]);
             }
             *n = *n - 1;
             numRemoved++;
             j++;
-            i--;
         }
-        i++;
+        else {
+            i++;
+        } 
     }
 }
 char* removeTopFromCards(char** cards, int* n) {
@@ -297,7 +298,6 @@ char* askForRank(char** cards, int n) {
     do {
         cout << "Ask the computer for a card rank: ";
         cin >> userAsk;
-        char* cardRank = (char*)malloc(RANK_SIZE * sizeof(char));
     } while (!canAskForRank(cards, n, userAsk));
     char* cardRank = (char*)malloc(RANK_SIZE * sizeof(char));
     cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
@@ -393,7 +393,8 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     int* numCompCards = (int*)malloc(sizeof(int));
     int* numUserBooks = (int*)malloc(sizeof(int));
     int* numCompBooks = (int*)malloc(sizeof(int));
-    *numUserCards = 7, *numCompCards = 7;
+    const int DEAL_SIZE = 7;
+    *numUserCards = DEAL_SIZE, *numCompCards = DEAL_SIZE;
     *numUserBooks = 0, *numCompBooks = 0;
 
     // get name
@@ -418,34 +419,40 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, NULL_RANK);
     handleBookInCards(compCards, numCompCards, compBooks, numCompBooks, NULL_RANK);
 
+    bool compTurnAgain = false;
+
     while (!gameOver) {
 
         // user's turn
-        printMessageBox("Your turn!");
-        cout << "Your cards: " << endl;
-        printArray(userCards, *numUserCards);
-        char* userAsk = askForRank(userCards, *numUserCards);
+        if (!compTurnAgain) {
+            printMessageBox("Your turn!");
+            cout << "Your cards: " << endl;
+            printArray(userCards, *numUserCards);
+            char* userAsk = askForRank(userCards, *numUserCards);
 
-        if (*numUserCards > 0 && checkPersonHasRank(compCards, *numCompCards, userAsk)) {
-            int numCardsToAdd = countCardsWithRank(compCards, *numCompCards, userAsk)
-                + countCardsWithRank(userCards, *numUserCards, userAsk);
-            if (numCardsToAdd == NUM_SUITS) {
-                removeCardsWithRank(userCards, numUserCards, userAsk);
-                removeCardsWithRank(compCards, numCompCards, userAsk);
-                addToBooks(userBooks, numUserBooks, userAsk);
-                cout << "userBooks" << endl;
-                printArray(userBooks, *numUserBooks);
+            if (*numUserCards > 0 && checkPersonHasRank(compCards, *numCompCards, userAsk)) {
+                int numCardsToAdd = countCardsWithRank(compCards, *numCompCards, userAsk)
+                    + countCardsWithRank(userCards, *numUserCards, userAsk);
+                if (numCardsToAdd == NUM_SUITS) {
+                    removeCardsWithRank(userCards, numUserCards, userAsk);
+                    removeCardsWithRank(compCards, numCompCards, userAsk);
+                    addToBooks(userBooks, numUserBooks, userAsk);
+                    cout << "userBooks" << endl;
+                    printArray(userBooks, *numUserBooks);
+                }
+                else {
+                    giveCardsWithRank(userCards, numUserCards, compCards, numCompCards, userAsk);
+                }
+                continue;
             }
             else {
-                giveCardsWithRank(userCards, numUserCards, compCards, numCompCards, userAsk);
+                cout << "Go Fish!" << endl;
+                char* newCard = goFish(userCards, numUserCards, stock, stockSize);
+                handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, copyCardRank(newCard));
+                if (cardRanksEq(newCard, userAsk)) {continue;}
             }
-            continue;
-        }
-        else {
-            cout << "Go Fish!" << endl;
-            char* newCard = goFish(userCards, numUserCards, stock, stockSize);
-            handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, copyCardRank(newCard));
-        }
+            free(userAsk);
+        }    
 
         // computer's turn
         printMessageBox("Computer's turn!");
@@ -467,16 +474,14 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
             else {
                 giveCardsWithRank(compCards, numCompCards, userCards, numUserCards, compAsk);
             }
-            continue;
+            compTurnAgain = true;
         }
         else {
             cout << "Computer must Go Fish!" << endl;
             char* newCard = goFish(compCards, numCompCards, stock, stockSize);
             handleBookInCards(compCards, numCompCards, compBooks, numCompBooks, copyCardRank(newCard));
+            compTurnAgain = cardRanksEq(newCard, compAsk);
         }
-
-        // clear stuff
-        free(userAsk);
         free(compAsk);
 
         // winning condition
