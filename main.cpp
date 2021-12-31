@@ -4,8 +4,13 @@
 #include <stdlib.h>
 
 /*
+Run: f6
+*/
+
+/*
 TO DO TESTING
-- adding to book after op has picked up new cards and given them up
+- winning game
+- running out of cards
 */
 
 using namespace std;
@@ -29,8 +34,8 @@ const int NUM_NUM_CARDS = 9;
 const int NUM_FACE_CARDS = 4;
 const int NUM_CARD_RANKS = NUM_NUM_CARDS + NUM_FACE_CARDS;
 const int DECK_SIZE = NUM_SUITS * NUM_CARD_RANKS;
-char** cardSuits = (char**)malloc(NUM_SUITS * sizeof(char*));
-char** faceCards = (char**)malloc(NUM_FACE_CARDS * sizeof(char*));
+char* cardSuits = (char*)malloc(NUM_SUITS * sizeof(char));
+char* faceCards = (char*)malloc(NUM_FACE_CARDS * sizeof(char));
 char** cardRanks = (char**)malloc(NUM_CARD_RANKS * sizeof(char));
 
 // ---- FUNCTIONS ----
@@ -339,7 +344,7 @@ void addToBooks(char** books, int* n, char* cardRank) {
     books[*n] = copyCardRank(cardRank);
     *n = *n + 1;
 }
-char* goFish(char** cards, int* n, char** stock, int* stockSize) {
+void goFish(char** cards, int* n, char** stock, int* stockSize) {
     char* newCard = removeTopFromCards(stock, stockSize);
     cout << "newCard = " << newCard << endl;
     addToCards(cards, n, newCard);
@@ -475,8 +480,8 @@ int main()
     // ---- CREATING CARD DECK ----
 
     // populating global cardSuits and faceCards
-    cardSuits[0] = "S", cardSuits[1] = "H", cardSuits[2] = "D", cardSuits[3] = "C";
-    faceCards[0] = "J", faceCards[1] = "Q", faceCards[2] = "K", faceCards[3] = "A";
+    cardSuits[0] = 'S', cardSuits[1] = 'H', cardSuits[2] = 'D', cardSuits[3] = 'C';
+    faceCards[0] = 'J', faceCards[1] = 'Q', faceCards[2] = 'K', faceCards[3] = 'A';
 
     // populating global cardRanks
     for (int i = 0; i < NUM_CARD_RANKS; i++) {
@@ -490,7 +495,7 @@ int main()
     cardRanks[cdRankCount][0] = '1', cardRanks[cdRankCount][1] = '0';
     cdRankCount++;
     for (int i = 0; i < NUM_FACE_CARDS; i++) {
-        cardRanks[cdRankCount][0] = '0', cardRanks[cdRankCount][1] = faceCards[i][0];
+        cardRanks[cdRankCount][0] = '0', cardRanks[cdRankCount][1] = faceCards[i];
         cdRankCount++;
     }
 
@@ -505,7 +510,7 @@ int main()
     }
     int cdCount = 0;
     for (int i = 0; i < NUM_SUITS; i++) {
-        char currSuit = cardSuits[i][0];
+        char currSuit = cardSuits[i];
         for (int j = 2; j < 10; j++) {
             fillCard(cardDeck[cdCount], '0', to_string(j)[0], currSuit);
             cdCount++;
@@ -513,7 +518,7 @@ int main()
         fillCard(cardDeck[cdCount], '1', '0', currSuit);
         cdCount++;
         for (int j = 0; j < NUM_FACE_CARDS; j++) {
-            fillCard(cardDeck[cdCount], '0', faceCards[j][0], currSuit);
+            fillCard(cardDeck[cdCount], '0', faceCards[j], currSuit);
             cdCount++;
         }
     }
