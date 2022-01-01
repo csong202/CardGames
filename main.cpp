@@ -28,6 +28,7 @@ string validGameChoices[][MAX_GAME_NAME] = {{"1", "Go Fish"}};
 const string QUIT_PROG_CMD = "Q";
 // game play
 const string COMP_NAME = "Computer";
+const string GAME_TIE = "";
 // cards and decks
 const int CARD_SIZE = 3;
 const int RANK_SIZE = CARD_SIZE - 1;
@@ -110,10 +111,10 @@ void showGameChoice(string userChoice) {
 }
 void displayWinner(string winner) {
     string message;
-    if (winner != "" && winner != COMP_NAME) {
+    if (winner != GAME_TIE && winner != COMP_NAME) {
         message = "CONGRATS, " + winner + "! You won!";
     }
-    else if (winner != "" && winner == COMP_NAME) {
+    else if (winner != GAME_TIE && winner == COMP_NAME) {
         message = "Oh no! You lost to " + COMP_NAME + " :(";
     }
     else {
@@ -136,6 +137,7 @@ string getUserName() {
         cout << "Please enter your name: ";
         cin >> userName;
     } while(userName.length() == 0 && userName != COMP_NAME);
+    return userName;
 }
 void fillCard(char* card, char val1, char val2, char suit) {
     card[0] = val1, card[1] = val2, card[2] = suit;
@@ -217,6 +219,7 @@ bool cardsEq(char* c1, char* c2) {
     return cardRanksEq(c1, c2) && c1[2] == c2[2];
 }
 void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
+    int origN = *n;
     int i = 0, j = 0;
     int numRemoved = 0;
     while (numRemoved < numToRemove && i < *n) {
@@ -231,6 +234,9 @@ void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
         else {
             i++;
         } 
+    }
+    for (int k = origN-numRemoved; k < origN; k++) {
+        free(cards[k]);
     }
 }
 char* removeTopFromCards(char** cards, int* n) {
@@ -280,13 +286,35 @@ char* askForRank(char** cards, int n) {
     cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
     return cardRank;
 }
-char* getCompAsk(char** cards, int n) {
+// char* getCompAsk(char** compCards, int n, char** prevAsks, int* numPrev) {
+//     int random;
+//     char* compRank = (char*)malloc(RANK_SIZE * sizeof(char));
+//     printf("numPrev = %d\n", *numPrev);
+//     cout << "compPrevAsks" << endl;
+//     printArray(prevAsks, *numPrev);
+//     do {
+//         random = rand() % NUM_CARD_RANKS;
+//         compRank = copyCardRank(cardRanks[random]);
+//     } while(!checkPersonHasRank(compCards, n, compRank) && !checkPersonHasRank(prevAsks, *numPrev, compRank));
+//     printf("compRank = %c%c\n", compRank[0], compRank[1]);
+//     *numPrev = *numPrev + 1;
+//     printf("new numPrev = %d\n", *numPrev);
+//     prevAsks = (char**)realloc(prevAsks, (*numPrev) * sizeof(char*));
+//     printf("just realloc\n");
+//     prevAsks[*numPrev-1] = (char*)malloc(RANK_SIZE * sizeof(char));
+//     printf("just malloc last index\n");
+//     prevAsks[*numPrev-1] = copyCardRank(compRank);
+//     cout << "compPrevAsks" << endl;
+//     printArray(prevAsks, *numPrev);
+//     return compRank;
+// }
+char* getCompAsk(char** compCards, int n) {
     int random;
     char* compRank = (char*)malloc(RANK_SIZE * sizeof(char));
     do {
         random = rand() % NUM_CARD_RANKS;
         compRank = copyCardRank(cardRanks[random]);
-    } while(!checkPersonHasRank(cards, n, compRank));
+    } while(!checkPersonHasRank(compCards, n, compRank));
     return compRank;
 }
 int removeCardsWithRank(char** cards, int* n, char* cardRank) {
@@ -320,6 +348,7 @@ void giveCardsWithRank(char** pCards, int* nP, char** opCards, int* opN, char* c
     removeFromCards(opCards, opN, toRemove, numToRemove);
 }
 void addToBooks(char** books, int* n, char* cardRank) {
+    books = (char**)realloc(books, (*n+1) * sizeof(char*));
     books[*n] = (char*)malloc(RANK_SIZE * sizeof(char));
     books[*n] = copyCardRank(cardRank);
     *n = *n + 1;
@@ -378,13 +407,13 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     string userName = getUserName();
 
     // deal cards
-    char*** dealtCards = dealCards(stock, origDeckSize, 7);
+    char*** dealtCards = dealCards(stock, origDeckSize, DEAL_SIZE);
     char** userCards = dealtCards[0];
     char** compCards = dealtCards[1];
     cout << "user's cards: " << endl;
-    printArray(userCards, 7);
+    printArray(userCards, *numUserCards);
     cout << "computer's cards: " << endl;
-    printArray(compCards, 7);
+    printArray(compCards, *numCompCards);
     removeFromCards(stock, stockSize, userCards, *numUserCards);
     removeFromCards(stock, stockSize, compCards, *numCompCards);
     cout << "stock: " << endl;
@@ -467,10 +496,10 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         winner = COMP_NAME;
     }
     else {
-        winner = "";
+        winner = GAME_TIE;
     }
 
-    // clear stuff
+    // deallocate memory
     free(stock);
     free(userBooks);
     free(compBooks);
