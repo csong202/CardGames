@@ -317,7 +317,7 @@ void giveCardsWithRank(char** pCards, int* nP, char** opCards, int* opN, char* c
     for (int i = 0; i < *opN; i++) {
         if (cardRanksEq(opCards[i], cardRank)) {
             addToCards(pCards, nP, opCards[i]);
-            printf("\tadded %c%c%c to cards, *nP = %d\n", opCards[i][0], opCards[i][1], opCards[i][2], *nP);
+            // printf("\tadded %c%c%c to cards, *nP = %d\n", opCards[i][0], opCards[i][1], opCards[i][2], *nP);
             numToRemove++;
             toRemove = (char**)realloc(toRemove, numToRemove * sizeof(char*));
             toRemove[numToRemove-1] = (char*)malloc(CARD_SIZE * sizeof(char));
@@ -369,7 +369,7 @@ char* goFish(char** cards, int* n, char** stock, int* stockSize) {
     return newCard;
 }
 bool checkWinConditionGoFish(int numUserBooks, int numCompBooks, int stockSize) {
-    return stockSize == 0 || (numUserBooks + numCompBooks == NUM_CARD_RANKS)
+    return stockSize == 0 || (numUserBooks + numCompBooks == NUM_CARD_RANKS);
 }
 void playGoFish(char** origCardDeck, int origDeckSize) {
     char** stock = copyDeck(origCardDeck, origDeckSize);
@@ -418,7 +418,10 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
                 handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, userAsk);
                 if (!checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize)) {
                     continue;
-                } else {break;}
+                } else {
+                    free(userAsk);
+                    break;
+                }
             }
             else {
                 cout << "Go Fish!" << endl;
@@ -426,7 +429,10 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
                 handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, copyCardRank(newCard));
                 if (cardRanksEq(newCard, userAsk) && !checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize)) {
                     continue;
-                } else if (!checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize)) {break;}
+                } else if (!checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize)) {
+                    free(userAsk);
+                    break;
+                }
             }
             free(userAsk);
         }    
@@ -453,7 +459,6 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         }
         free(compAsk);
 
-        // winning condition
         gameOver = checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize);
     }
 
