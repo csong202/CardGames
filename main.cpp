@@ -260,7 +260,7 @@ int countCardsWithRank(char** cards, int n, char* cardRank) {
 }
 
 // GO FISH
-bool checkPersonHasRank(char** cards, int n, char* cardRank) {
+bool rankInCards(char** cards, int n, char* cardRank) {
     for (int i = 0; i < n; i++) {
         if (cardRanksEq(cards[i], cardRank)) {
             return true;
@@ -271,7 +271,7 @@ bool checkPersonHasRank(char** cards, int n, char* cardRank) {
 bool canAskForRank(char** cards, int n, string userAsk) {
     char* cardRank = (char*)malloc(RANK_SIZE * sizeof(char));
     cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
-    bool canAsk = checkPersonHasRank(cards, n, cardRank);
+    bool canAsk = rankInCards(cards, n, cardRank);
     if (!canAsk) {return false;}
     canAsk = checkValidCardRank(userAsk);
     return canAsk;
@@ -279,20 +279,20 @@ bool canAskForRank(char** cards, int n, string userAsk) {
 char* askForRank(char** cards, int n) {
     string userAsk;
     do {
-        cout << "Ask the computer for a card rank: ";
+        cout << "Ask the computer for (card rank): ";
         cin >> userAsk;
     } while (!canAskForRank(cards, n, userAsk));
     char* cardRank = (char*)malloc(RANK_SIZE * sizeof(char));
     cardRank[0] = userAsk[0], cardRank[1] = userAsk[1];
     return cardRank;
 }
-char* getCompAsk(char** compCards, int n) {
+char* getCompAsk(char** compCards, int n, char** prevAsks, int numPrevAsks) {
     int random;
     char* compRank = (char*)malloc(RANK_SIZE * sizeof(char));
     do {
         random = rand() % NUM_CARD_RANKS;
         compRank = copyCardRank(cardRanks[random]);
-    } while(!checkPersonHasRank(compCards, n, compRank));
+    } while(!rankInCards(compCards, n, compRank) || rankInCards(prevAsks, numPrevAsks, compRank));
     return compRank;
 }
 int removeCardsWithRank(char** cards, int* n, char* cardRank) {
@@ -317,7 +317,6 @@ void giveCardsWithRank(char** pCards, int* nP, char** opCards, int* opN, char* c
     for (int i = 0; i < *opN; i++) {
         if (cardRanksEq(opCards[i], cardRank)) {
             addToCards(pCards, nP, opCards[i]);
-            // printf("\tadded %c%c%c to cards, *nP = %d\n", opCards[i][0], opCards[i][1], opCards[i][2], *nP);
             numToRemove++;
             toRemove = (char**)realloc(toRemove, numToRemove * sizeof(char*));
             toRemove[numToRemove-1] = (char*)malloc(CARD_SIZE * sizeof(char));
@@ -350,7 +349,6 @@ void handleBookInCards(char** cards, int* n, char** books, int* numBooks, char* 
                     addToBooks(books, numBooks, cardRank);
                     cout << "books:" << endl;
                     printArray(books, *numBooks);
-                    break;
                 }
                 break;
             }
@@ -385,6 +383,9 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     const int DEAL_SIZE = 20;
     *numUserCards = DEAL_SIZE, *numCompCards = DEAL_SIZE;
     *numUserBooks = 0, *numCompBooks = 0;
+    char** compPrevAsks = (char**)malloc(sizeof(char*));
+    int* numPrevAsks = (int*)malloc(sizeof(int));
+    *numPrevAsks = 0;
 
     // get name
     string userName = getUserName();
@@ -413,7 +414,7 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
             printArray(userCards, *numUserCards);
             char* userAsk = askForRank(userCards, *numUserCards);
 
-            if (*numUserCards > 0 && checkPersonHasRank(compCards, *numCompCards, userAsk)) {
+            if (*numUserCards > 0 && rankInCards(compCards, *numCompCards, userAsk)) {
                 giveCardsWithRank(userCards, numUserCards, compCards, numCompCards, userAsk);
                 handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, userAsk);
                 if (!checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize)) {
@@ -429,7 +430,7 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
                 handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, copyCardRank(newCard));
                 if (cardRanksEq(newCard, userAsk) && !checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize)) {
                     continue;
-                } else if (!checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize)) {
+                } else if (checkWinConditionGoFish(*numUserBooks, *numCompBooks, *stockSize)) {
                     free(userAsk);
                     break;
                 }
@@ -441,10 +442,10 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
         printMessageBox("Computer's turn!");
         cout << "compCards" << endl;
         printArray(compCards, *numCompCards);
-        char* compAsk = getCompAsk(compCards, *numCompCards);
-        cout << "compAsk = " << compAsk << endl;
+        char* compAsk = getCompAsk(compCards, *numCompCards, compPrevAsks, *numPrevAsks);
+        cout << "Computer asked for: " << compAsk << "'s" << endl;
 
-        if (*numCompCards > 0 && checkPersonHasRank(userCards, *numUserCards, compAsk)) {
+        if (*numCompCards > 0 && rankInCards(userCards, *numUserCards, compAsk)) {
             int numCardsToAdd = countCardsWithRank(compCards, *numCompCards, compAsk)
                 + countCardsWithRank(userCards, *numUserCards, compAsk);
             giveCardsWithRank(compCards, numCompCards, userCards, numUserCards, compAsk);
@@ -456,6 +457,19 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
             char* newCard = goFish(compCards, numCompCards, stock, stockSize);
             handleBookInCards(compCards, numCompCards, compBooks, numCompBooks, copyCardRank(newCard));
             compTurnAgain = cardRanksEq(newCard, compAsk);
+        }
+        if (compTurnAgain) {
+            compPrevAsks = (char**)realloc(compPrevAsks, (*numPrevAsks+1) * sizeof(char*));
+            compPrevAsks[*numPrevAsks] = (char*)malloc(RANK_SIZE * sizeof(char));
+            compPrevAsks[*numPrevAsks] = copyCardRank(compAsk);
+            *numPrevAsks = *numPrevAsks + 1;
+            cout << "compPrevAsks: " << endl;
+            printArray(compPrevAsks, *numPrevAsks);
+        }
+        else {
+            free(compPrevAsks);
+            *numPrevAsks = 0;
+            printArray(compPrevAsks, *numPrevAsks);
         }
         free(compAsk);
 
@@ -472,6 +486,7 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     else {
         winner = GAME_TIE;
     }
+    displayWinner(winner);
 
     // deallocate memory
     free(stock);
@@ -483,6 +498,8 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     free(compCards);
     free(numUserCards);
     free(numCompCards);
+    free(compPrevAsks);
+    free(numPrevAsks);
 }
 
 
