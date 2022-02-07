@@ -60,6 +60,16 @@ void printMessageBox(string message) {
     cout << "* " << message << " *" << endl;
     cout << border << endl;
 }
+void free2DArray(char** arr, int size) {
+    for (int i = 0; i < size; i++) {
+        free(arr[i]);
+    }
+    free(arr);
+}
+void free2DArray(char** arr, int* size) {
+    free2DArray(arr, *size);
+    free(size);
+}
 
 // PLAYING GAMES
 
@@ -230,7 +240,7 @@ char* removeTopFromCards(char** cards, int* n) {
     temp[0] = (char*)malloc(CARD_SIZE * sizeof(char));
     temp[0] = copyCard(toRemove);
     removeFromCards(cards, n, temp, 1);
-    free(temp);
+    free2DArray(temp, 1);
     return toRemove;
 }
 int countCardsWithRank(char** cards, int n, char* cardRank) {

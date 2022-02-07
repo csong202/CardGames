@@ -212,7 +212,7 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
             printArray(compPrevAsks, *numPrevAsks);
         }
         else {
-            free(compPrevAsks);
+            free2DArray(compPrevAsks, *numPrevAsks);
             *numPrevAsks = 0;
             printArray(compPrevAsks, *numPrevAsks);
         }
@@ -233,15 +233,10 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     displayWinner(winner);
 
     // deallocate memory
-    free(stock);
-    free(userBooks);
-    free(compBooks);
-    free(numUserBooks);
-    free(numCompBooks);
-    free(userCards);
-    free(compCards);
-    free(numUserCards);
-    free(numCompCards);
-    free(compPrevAsks);
-    free(numPrevAsks);
+    free2DArray(stock, stockSize);
+    free2DArray(userBooks, numUserBooks);
+    free2DArray(compBooks, numCompBooks);
+    free2DArray(userCards, numUserCards);
+    free2DArray(compCards, numCompCards);
+    free2DArray(compPrevAsks, numPrevAsks);
 }

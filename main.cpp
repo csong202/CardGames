@@ -101,6 +101,6 @@ int main()
     // deallocating memory
     free(cardSuits);
     free(faceCards);
-    free(cardDeck);
+    free2DArray(cardDeck, DECK_SIZE);
     return 0;
 }
