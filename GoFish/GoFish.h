@@ -24,7 +24,7 @@ char* askForRank(char** cards, int n) {
 }
 char* getCompAsk(char** compCards, int n, char** prevAsks, int numPrevAsks) {
     int random;
-    char* compRank = (char*)malloc(RANK_SIZE * sizeof(char));
+    char* compRank;
     do {
         random = rand() % NUM_CARD_RANKS;
         compRank = copyCardRank(cardRanks[random]);
@@ -40,7 +40,6 @@ int removeCardsWithRank(char** cards, int* n, char* cardRank) {
         if (cardRanksEq(cards[i], cardRank)) {
             numToRemove++;
             toRemove = (char**)realloc(toRemove, numToRemove * sizeof(char*));
-            toRemove[idx] = (char*)malloc(CARD_SIZE * sizeof(char));
             toRemove[idx] = copyCard(cards[i]);
             idx++;
         }
@@ -60,7 +59,6 @@ void giveCardsWithRank(char** pCards, int* nP, char** opCards, int* opN, char* c
 void addToBooks(char** books, int* n, char* cardRank) {
     *n = *n+1;
     // books = (char**)realloc(books, (*n) * sizeof(char*));
-    books[*n-1] = (char*)malloc(RANK_SIZE * sizeof(char));
     books[*n-1] = copyCardRank(cardRank);
 }
 void handleBookInCards(char** cards, int* n, char** books, int* numBooks, char* cardRank) {
@@ -106,6 +104,7 @@ bool checkWinConditionGoFish(int numUserBooks, int numCompBooks, int stockSize) 
 
 void playGoFish(char** origCardDeck, int origDeckSize) {
     char** stock = copyDeck(origCardDeck, origDeckSize);
+    cout << "just made stock" << endl;
     int* stockSize = (int*)malloc(sizeof(int));
     *stockSize = DECK_SIZE;
     bool gameOver = false;
