@@ -138,7 +138,7 @@ void fillCard(char* card, char val1, char val2, char suit) {
 }
 char* copyCard(char* card) {
     char* copyCard = (char*)malloc(CARD_SIZE * sizeof(char));
-    copyCard[0] = card[0], copyCard[1] = card[1], copyCard[2] = card[2];
+    fillCard(copyCard, card[0], card[1], card[2]);
     return copyCard;
 }
 char* copyCardRank(char* cardRank) {
@@ -161,9 +161,9 @@ char** copyDeck(char** deck, int n) {
         return NULL;
     }
     for (int i = 0; i < n; i++) {
-        copyDeck[i] = (char*)malloc(CARD_SIZE * sizeof(char));
         copyDeck[i] = copyCard(deck[i]);
     }
+    cout << "copied deck:" << endl;
     printArray(copyDeck, n);
     return copyDeck;
 }
@@ -171,9 +171,6 @@ char*** dealCards(char** deck, int deckSize, int numToDeal) {
     char*** dealtCards = (char***)malloc(2 * sizeof(char**));
     for (int i = 0; i < 2; i++) {
         dealtCards[i] = (char**)malloc(CARD_SIZE * numToDeal * sizeof(char*));
-        for (int j = 0; j < numToDeal; j++) {
-            dealtCards[i][j] = (char*)malloc(CARD_SIZE * sizeof(char));
-        }
     }
     int p1 = 0, p2 = 0;
     for (int i = 0; i < 2*numToDeal; i++) {
@@ -191,7 +188,6 @@ char*** dealCards(char** deck, int deckSize, int numToDeal) {
 void addToCards(char** cards, int* n, char* card) {
     *n = *n + 1;
     cards = (char**)realloc(cards, (*n) * sizeof(char*));
-    cards[*n-1] = (char*)malloc(CARD_SIZE * sizeof(char));
     cards[*n-1] = copyCard(card);
 }
 bool checkValidCardRank(string r) {
@@ -234,10 +230,8 @@ void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
     }
 }
 char* removeTopFromCards(char** cards, int* n) {
-    char* toRemove = (char*)malloc(CARD_SIZE * sizeof(char));
-    toRemove = copyCard(cards[0]);
+    char* toRemove = copyCard(cards[0]);
     char** temp = (char**)malloc(sizeof(char*));
-    temp[0] = (char*)malloc(CARD_SIZE * sizeof(char));
     temp[0] = copyCard(toRemove);
     removeFromCards(cards, n, temp, 1);
     free2DArray(temp, 1);
