@@ -52,6 +52,7 @@ int removeCardsWithRank(char** cards, int* n, char* cardRank) {
         }
     }
     removeFromCards(cards, n, toRemove, numToRemove);
+    free2DArray(toRemove, numToRemove);
     return numToRemove;
 }
 void giveCardsWithRank(char** pCards, int* nP, char** opCards, int* opN, char* cardRank) {
@@ -112,9 +113,7 @@ bool checkWinConditionGoFish(int numUserBooks, int numCompBooks, int stockSize) 
 
 // ---- PLAYING GO FISH ----
 
-void playGoFish(char** origCardDeck, int origDeckSize) {
-    char** stock = copyDeck(origCardDeck, origDeckSize);
-    cout << "just made stock" << endl;
+void playGoFish(char** stock) { 
     int* stockSize = (int*)malloc(sizeof(int));
     *stockSize = DECK_SIZE;
     bool gameOver = false;
@@ -137,17 +136,13 @@ void playGoFish(char** origCardDeck, int origDeckSize) {
     string userName = "player";
 
     // deal cards
-    char*** dealtCards = dealCards(stock, origDeckSize, DEAL_SIZE);
+    char*** dealtCards = dealCards(stock, stockSize, DEAL_SIZE);
     char** userCards = dealtCards[0];
     char** compCards = dealtCards[1];
     cout << "user's cards: " << endl;
     printArray(userCards, *numUserCards);
     cout << "computer's cards: " << endl;
     printArray(compCards, *numCompCards);
-    removeFromCards(stock, stockSize, userCards, *numUserCards);
-    removeFromCards(stock, stockSize, compCards, *numCompCards);
-    cout << "stock: " << endl;
-    printArray(stock, *stockSize);
     handleBookInCards(userCards, numUserCards, userBooks, numUserBooks, NULL_RANK);
     handleBookInCards(compCards, numCompCards, compBooks, numCompBooks, NULL_RANK);
 

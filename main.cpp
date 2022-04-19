@@ -1,6 +1,7 @@
 #include "precompiled_headers/pch.h"
 #include "Common/Common.h"
 #include "GoFish/GoFish.h"
+#include "CrazyEights/CrazyEights.h"
 
 /*
 TO DO TESTING
@@ -72,19 +73,20 @@ int main()
         cout << "\nshuffled deck" << endl;
         printArray(cardDeck,DECK_SIZE);
 
-        // // select game to play
-        // userChoice = selectGame();
-        // while (!checkValidGameChoice(userChoice)) {
-        //     cout << "Invalid choice" << endl;
-        //     userChoice = selectGame();
-        // }
-        // showGameChoice(userChoice);
-        /* TESTING PURPOSES */
-        userChoice = "1";
+        // select game to play
+        userChoice = selectGame();
+        while (!checkValidGameChoice(userChoice)) {
+            cout << "Invalid choice" << endl;
+            userChoice = selectGame();
+        }
+        showGameChoice(userChoice);
 
         // play game
         if (userChoice == "1") {
-            playGoFish(cardDeck, DECK_SIZE);
+            playGoFish(copyDeck(cardDeck, DECK_SIZE));
+        }
+        else if (userChoice == "2") {
+            playCrazyEights(copyDeck(cardDeck, DECK_SIZE));
         }
         else if (userChoice == QUIT_PROG_CMD) {
             cout << "Goodbye!" << endl;

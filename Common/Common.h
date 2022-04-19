@@ -7,9 +7,9 @@ using namespace std;
 const string consoleSep = "-------------------------------";
 const string consoleLine = "* * * * * *";
 // game selection
-const int NUM_VALID_GAMES = 1;
+const int NUM_VALID_GAMES = 2;
 const int MAX_GAME_NAME = 50;
-string validGameChoices[][MAX_GAME_NAME] = {{"1", "Go Fish"}};
+string validGameChoices[][MAX_GAME_NAME] = {{"1", "Go Fish"}, {"2", "Crazy Eights"}};
 const string QUIT_PROG_CMD = "Q";
 // game play
 const string COMP_NAME = "Computer";
@@ -69,6 +69,14 @@ void free2DArray(char** arr, int size) {
 void free2DArray(char** arr, int* size) {
     free2DArray(arr, *size);
     free(size);
+}
+char* stringToCharArray(string s) {
+    int n = s.length();
+    char* charArr = (char*)malloc(n * sizeof(char));
+    for (int i = 0; i < n; i++) {
+        charArr[i] = s[i];
+    }
+    return charArr;
 }
 
 // PLAYING GAMES
@@ -167,24 +175,6 @@ char** copyDeck(char** deck, int n) {
     printArray(copyDeck, n);
     return copyDeck;
 }
-char*** dealCards(char** deck, int deckSize, int numToDeal) {
-    char*** dealtCards = (char***)malloc(2 * sizeof(char**));
-    for (int i = 0; i < 2; i++) {
-        dealtCards[i] = (char**)malloc(CARD_SIZE * numToDeal * sizeof(char*));
-    }
-    int p1 = 0, p2 = 0;
-    for (int i = 0; i < 2*numToDeal; i++) {
-        if (i%2 == 0) {
-            dealtCards[0][p1] = copyCard(deck[i]);
-            p1++;
-        }
-        else {
-            dealtCards[1][p2] = copyCard(deck[i]);
-            p2++;
-        }
-    }
-    return dealtCards;
-}
 void addToCards(char** cards, int* n, char* card) {
     *n = *n + 1;
     cards = (char**)realloc(cards, (*n) * sizeof(char*));
@@ -207,8 +197,11 @@ bool checkValidCardRank(string r) {
 bool cardRanksEq(char* c1, char* c2) {
     return c1[0] == c2[0] && c1[1] == c2[1];
 }
+bool cardSuitsEq(char* c1, char* c2) {
+    return c1[2] == c2[2];
+}
 bool cardsEq(char* c1, char* c2) {
-    return cardRanksEq(c1, c2) && c1[2] == c2[2];
+    return cardRanksEq(c1, c2) && cardSuitsEq(c1, c2);
 }
 void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
     int origN = *n;
@@ -235,13 +228,36 @@ void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
     // cout << "just removed from cards" << endl;
     // printArray(cards, *n);
 }
+void removeSingleCard(char** cards, int* n, char* cardToRemove) {
+    char** temp = (char**)malloc(sizeof(char*));
+    temp[0] = copyCard(cardToRemove);
+    removeFromCards(cards, n , temp, 1);
+    free2DArray(temp, 1);
+}
 char* removeTopFromCards(char** cards, int* n) {
     char* toRemove = copyCard(cards[0]);
-    char** temp = (char**)malloc(sizeof(char*));
-    temp[0] = copyCard(toRemove);
-    removeFromCards(cards, n, temp, 1);
-    free2DArray(temp, 1);
+    removeSingleCard(cards, n, toRemove);
     return toRemove;
+}
+char*** dealCards(char** deck, int* deckSize, int numToDeal) {
+    char*** dealtCards = (char***)malloc(2 * sizeof(char**));
+    for (int i = 0; i < 2; i++) {
+        dealtCards[i] = (char**)malloc(CARD_SIZE * numToDeal * sizeof(char*));
+    }
+    int p1 = 0, p2 = 0;
+    for (int i = 0; i < 2*numToDeal; i++) {
+        if (i%2 == 0) {
+            dealtCards[0][p1] = copyCard(deck[i]);
+            p1++;
+        }
+        else {
+            dealtCards[1][p2] = copyCard(deck[i]);
+            p2++;
+        }
+    }
+    removeFromCards(deck, deckSize, copyDeck(dealtCards[0], numToDeal), numToDeal);
+    removeFromCards(deck, deckSize, copyDeck(dealtCards[1], numToDeal), numToDeal);
+    return dealtCards;
 }
 int countCardsWithRank(char** cards, int n, char* cardRank) {
     int numCards = 0;
@@ -262,4 +278,23 @@ bool rankInCards(char** cards, int n, char* cardRank) {
     }
     // printf("%c%c not in cards\n", cardRank[0], cardRank[1]);
     return false;
+}
+bool cardInCards(char** cards, int n, char* card) {
+    for (int i = 0; i < n; i++) {
+        if (cardsEq(cards[i], card)) {
+            return true;
+        }
+    }
+    return false;
+}
+char* chooseCardFromHand(char** userCards, int* numUserCards) {
+    string userAsk;
+    char* cardChosen;
+    do {
+        cout << "Please choose a card to play" << endl;
+        printArray(userCards, *numUserCards);
+        cin >> userAsk;
+        cardChosen = stringToCharArray(userAsk);
+    } while (!cardInCards(userCards, *numUserCards, cardChosen));
+    return cardChosen;
 }
