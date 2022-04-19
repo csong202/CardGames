@@ -2,6 +2,12 @@
 #include "../precompiled_headers/pch.h"
 #include "../Common/Common.h"
 
+/*
+TODO
+- getCompAsk shows suit
+- crashes when compTurnAgain is true?
+*/
+
 using namespace std;
 
 bool canAskForRank(char** cards, int n, string userAsk) {
@@ -27,7 +33,7 @@ char* getCompAsk(char** compCards, int n, char** prevAsks, int numPrevAsks) {
     char* compRank;
     do {
         random = rand() % NUM_CARD_RANKS;
-        free(compRank);
+        // free(compRank);
         compRank = copyCardRank(cardRanks[random]);
     } while(!rankInCards(compCards, n, compRank) || rankInCards(prevAsks, numPrevAsks, compRank));
     return compRank;

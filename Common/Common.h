@@ -189,6 +189,8 @@ void addToCards(char** cards, int* n, char* card) {
     *n = *n + 1;
     cards = (char**)realloc(cards, (*n) * sizeof(char*));
     cards[*n-1] = copyCard(card);
+    // cout << "just added cards" << endl;
+    // printArray(cards, *n);
 }
 bool checkValidCardRank(string r) {
     if (r.length() != 2) {
@@ -228,6 +230,10 @@ void removeFromCards(char** cards, int* n, char** toRemove, int numToRemove) {
     for (int k = origN-numRemoved; k < origN; k++) {
         free(cards[k]);
     }
+    // cout << "toRemove" << endl;
+    // printArray(toRemove, numToRemove);
+    // cout << "just removed from cards" << endl;
+    // printArray(cards, *n);
 }
 char* removeTopFromCards(char** cards, int* n) {
     char* toRemove = copyCard(cards[0]);
